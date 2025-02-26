@@ -151,7 +151,7 @@ struct RcInnerImpl<T[], StoragePolicy::Separate> : RcInnerArrayImpl<T[]> {
     void do_delete(detail::DeleteType t) override {
         auto self = this;
         if (t == detail::DeleteType::Value) {
-            auto ptr = self->value;
+            auto ptr = const_cast<std::remove_const_t<value_t>*>(self->value);
             for (std::size_t i = 0; i < this->size; i++) {
                 (ptr + i)->~value_t();
             }
@@ -269,7 +269,8 @@ struct RcInnerAllocImpl<T[], Allocator, StoragePolicy::Separate>
             for (std::size_t i = 0; i < n; i++) {
                 (self->value + i)->~value_t();
             }
-            self->allocator.deallocate(self->value, n);
+            auto p = const_cast<std::remove_const_t<value_t>*>(self->value);
+            self->allocator.deallocate(p, n);
             self->value = nullptr;
         } else {
             auto self_allocator =
@@ -279,7 +280,8 @@ struct RcInnerAllocImpl<T[], Allocator, StoragePolicy::Separate>
     }
 
     template<typename... Args>
-    void allocate_value(std::size_t n, Args&&... args) {
+    void allocate_value(Args&&... args) {
+        auto  n     = this->size;
         auto* ptr   = allocator.allocate(n);
         this->value = ptr;
         for (std::size_t i = 0; i < n; i++) {
