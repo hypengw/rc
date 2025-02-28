@@ -323,6 +323,13 @@ struct RcInnerAllocImpl<T, Allocator, StoragePolicy::SeparateWithDeleter, ValueD
 export template<typename T>
 class Rc;
 
+struct RcMakeHelper {
+    template<typename T>
+    static auto make_rc(Rc<T>::inner_t* inner) noexcept {
+        return Rc<T>(inner);
+    }
+};
+
 export template<typename T>
 class Weak final {
     friend class Rc<T>;
@@ -355,7 +362,7 @@ public:
     auto upgrade() const -> std::optional<Rc<T>> {
         if (! m_ptr || m_ptr->strong == 0) return std::nullopt;
         m_ptr->inc_strong();
-        return { Rc<T>(m_ptr) };
+        return { RcMakeHelper::make_rc<T>(m_ptr) };
     }
 
     auto strong_count() const -> std::size_t { return m_ptr ? m_ptr->strong : 0; }
@@ -453,7 +460,7 @@ protected:
 public:
     auto to_const() const -> Rc<const T> {
         this->m_ptr->inc_strong();
-        return { this->m_ptr };
+        return RcMakeHelper::make_rc<const T>(this->m_ptr);
     }
     auto get() noexcept -> value_t* {
         auto p = this->inner();
@@ -486,17 +493,11 @@ public:
     auto operator->() noexcept -> const_value_t* { return get(); }
 };
 
-struct RcMakeHelper;
-
 template<typename T>
 class Rc final : public RcAdaptor<T> {
     friend class RcMakeHelper;
-    friend class Weak<T>;
     using inner_t = RcBase<T>::inner_t;
     explicit Rc(inner_t* p) noexcept: RcAdaptor<T>(p) {}
-
-    template<typename F>
-    friend auto make_rc(F*) -> Rc<F>;
 
 public:
     Rc(): Rc((inner_t*)nullptr) {}
@@ -539,13 +540,6 @@ public:
     void swap(Rc& other) noexcept { std::swap(this->m_ptr, other.m_ptr); }
 };
 
-struct RcMakeHelper {
-    template<typename T>
-    static auto make_rc(Rc<T>::inner_t* inner) noexcept {
-        return Rc<T>(inner);
-    }
-};
-
 export template<typename T, StoragePolicy Sp = StoragePolicy::Separate, typename... Args>
     requires(! std::is_array_v<T>)
 auto make_rc(Args&&... args) -> Rc<T> {
@@ -584,7 +578,7 @@ auto allocate_make_rc(const Allocator& alloc, std::size_t n, typename Rc<T>::con
     auto mem   = (std::byte*)self_allocator.allocate(1);
     auto inner = new (mem) inner_t(alloc, n);
     inner->allocate_value(t);
-    return Rc(inner);
+    return RcMakeHelper::make_rc<T>(inner);
 }
 
 // Non-member functions
