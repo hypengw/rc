@@ -76,5 +76,5 @@ auto arr = rstd::rc::make_rc<int[]>(5, 0); // Array of 5 integers initialized to
 #include <memory>
 
 std::allocator<int> alloc;
-auto allocated = rstd::rc::Rc<int>::allocate_make(alloc, 42);
+auto allocated = rstd::rc::allocate_make_rc<int>(alloc, 42);
 ```
