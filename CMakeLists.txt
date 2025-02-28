@@ -5,14 +5,16 @@ project(
   DESCRIPTION "rust like Rc/Arc for c++"
   LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 20)
+if(PROJECT_IS_TOP_LEVEL)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 option(RC_BUILD_TESTS "Build tests" ${PROJECT_IS_TOP_LEVEL})
 
 add_library(rc)
 add_library(rstd::rc ALIAS rc)
+target_compile_features(rc PUBLIC cxx_std_20)
 target_sources(
   rc
   PUBLIC FILE_SET
