@@ -43,7 +43,7 @@ struct ArrayTestStruct {
     int value;
     std::string name;
     
-    ArrayTestStruct(int v = 0, std::string n = ""): value(v), name(std::move(n)) {}
+    ArrayTestStruct(int v = 0, std::string n = ""): value(v), name(n) {}
     bool operator==(const ArrayTestStruct& other) const {
         return value == other.value && name == other.name;
     }
@@ -119,14 +119,14 @@ TEST(RcTest, CustomDeleter) {
 }
 
 TEST(RcTest, ArraySupport) {
-    auto rc = Rc<int[]>::make(3, 42);
+    auto rc = make_rc<int[]>(3, 42);
     EXPECT_EQ(rc.get()[0], 42);
     EXPECT_EQ(rc.get()[1], 42);
     EXPECT_EQ(rc.get()[2], 42);
 }
 
 TEST(RcTest, ArrayOfStructs) {
-    auto rc = Rc<ArrayTestStruct[]>::make(3, ArrayTestStruct(42, "test"));
+    auto rc = make_rc<ArrayTestStruct[]>(3, ArrayTestStruct(42, "test"));
     
     EXPECT_EQ(rc.get()[0], ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc.get()[1], ArrayTestStruct(42, "test"));
@@ -167,7 +167,7 @@ TEST(RcTest, CustomAllocator) {
     bool deallocated = false;
     {
         TestAllocator<int> alloc(&allocated, &deallocated);
-        auto               rc = Rc<int>::allocate_make(alloc, 42);
+        auto               rc = allocate_make_rc<int>(alloc, 42);
 
         EXPECT_TRUE(allocated);
         EXPECT_FALSE(deallocated);
@@ -182,10 +182,10 @@ TEST(RcTest, Size) {
     EXPECT_EQ(rc_single.size(), 1);
 
     // Test size for array
-    auto rc_array = Rc<int[]>::make(5, 42);
+    auto rc_array = make_rc<int[]>(5, 42);
     EXPECT_EQ(rc_array.size(), 5);
 
     // Test size for array of structs
-    auto rc_struct_array = Rc<ArrayTestStruct[]>::make(3, ArrayTestStruct(42, "test"));
+    auto rc_struct_array = make_rc<ArrayTestStruct[]>(3, ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc_struct_array.size(), 3);
 }

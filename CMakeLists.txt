@@ -22,6 +22,7 @@ target_sources(
          BASE_DIRS
          src
          FILES
+         src/arc.cppm
          src/rc.cppm
          src/mod.cppm)
 
