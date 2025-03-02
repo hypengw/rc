@@ -587,3 +587,9 @@ void swap(Rc<T>& lhs, Rc<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
 } // namespace rstd::rc
+
+namespace rstd
+{
+export template<typename T>
+using Rc = rc::Rc<T>;
+}
