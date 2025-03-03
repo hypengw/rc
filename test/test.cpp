@@ -40,9 +40,9 @@ struct TestAllocator {
 };
 
 struct ArrayTestStruct {
-    int value;
+    int         value;
     std::string name;
-    
+
     ArrayTestStruct(int v = 0, std::string n = ""): value(v), name(n) {}
     bool operator==(const ArrayTestStruct& other) const {
         return value == other.value && name == other.name;
@@ -127,15 +127,15 @@ TEST(RcTest, ArraySupport) {
 
 TEST(RcTest, ArrayOfStructs) {
     auto rc = make_rc<ArrayTestStruct[]>(3, ArrayTestStruct(42, "test"));
-    
+
     EXPECT_EQ(rc.get()[0], ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc.get()[1], ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc.get()[2], ArrayTestStruct(42, "test"));
-    
+
     // Modify elements
     rc.get()[1].value = 24;
-    rc.get()[1].name = "modified";
-    
+    rc.get()[1].name  = "modified";
+
     EXPECT_EQ(rc.get()[0], ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc.get()[1], ArrayTestStruct(24, "modified"));
     EXPECT_EQ(rc.get()[2], ArrayTestStruct(42, "test"));
@@ -188,4 +188,10 @@ TEST(RcTest, Size) {
     // Test size for array of structs
     auto rc_struct_array = make_rc<ArrayTestStruct[]>(3, ArrayTestStruct(42, "test"));
     EXPECT_EQ(rc_struct_array.size(), 3);
+}
+
+TEST(RcTest, Constness) {
+    auto        val       = make_rc<int>(42);
+    const auto& const_val = val;
+    int         x         = *const_val;
 }

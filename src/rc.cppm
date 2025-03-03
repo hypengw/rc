@@ -454,10 +454,11 @@ template<typename T>
 class RcAdaptor : public RcBase<T> {
 protected:
     using inner_t = RcBase<T>::inner_t;
-    using value_t = RcBase<T>::value_t;
     explicit RcAdaptor(inner_t* p) noexcept: RcBase<T>(p) {}
 
 public:
+    using value_t       = RcBase<T>::value_t;
+    using const_value_t = RcBase<T>::const_value_t;
     auto to_const() const -> Rc<const T> {
         this->m_ptr->inc_strong();
         return RcMakeHelper::make_rc<const T>(this->m_ptr);
@@ -471,26 +472,36 @@ public:
         return *const_cast<value_t*>(p->value);
     }
     auto operator->() noexcept -> value_t* { return get(); }
+
+    auto get() const noexcept -> const_value_t* {
+        auto p = this->inner();
+        return p ? p->value : nullptr;
+    }
+    auto operator*() const noexcept -> const_value_t& {
+        auto p = this->inner();
+        return *(p->value);
+    }
+    auto operator->() const noexcept -> const_value_t* { return get(); }
 };
 template<typename F>
 class RcAdaptor<const F> : public RcBase<const F> {
     using T = const F;
 
 protected:
-    using const_value_t = RcBase<T>::const_value_t;
-    using inner_t       = RcBase<T>::inner_t;
+    using inner_t = RcBase<T>::inner_t;
     explicit RcAdaptor(inner_t* p) noexcept: RcBase<T>(p) {}
 
 public:
-    auto get() noexcept -> const_value_t* {
+    using const_value_t = RcBase<T>::const_value_t;
+    auto get() const noexcept -> const_value_t* {
         auto p = this->inner();
         return p ? p->value : nullptr;
     }
-    auto operator*() noexcept -> const_value_t& {
+    auto operator*() const noexcept -> const_value_t& {
         auto p = this->inner();
         return *(p->value);
     }
-    auto operator->() noexcept -> const_value_t* { return get(); }
+    auto operator->() const noexcept -> const_value_t* { return get(); }
 };
 
 template<typename T>
